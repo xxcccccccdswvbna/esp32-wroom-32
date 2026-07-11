@@ -103,6 +103,7 @@ select:
 button:
   - platform: template
     name: "Dev1 Light Toggle"
+    id: dev1_light_toggle
     icon: mdi:lightbulb
     on_press:
       - lambda: |-
@@ -123,6 +124,7 @@ button:
 
   - platform: template
     name: "Dev2 Light Toggle"
+    id: dev2_light_toggle
     icon: mdi:lightbulb
     on_press:
       - lambda: |-
