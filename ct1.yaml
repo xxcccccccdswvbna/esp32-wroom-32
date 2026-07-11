@@ -1,6 +1,6 @@
 substitutions:
-  dev_name: "ct2"
-  friendly_name: "ct2"
+  dev_name: "ct1"
+  friendly_name: "ct1"
 
 # 1. esphome 配置（只包含 name 和 friendly_name）
 esphome:
