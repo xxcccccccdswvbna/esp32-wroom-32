@@ -56,8 +56,11 @@ jobs:
           wifi_password: "${{ secrets.WIFI_PASSWORD }}"
           api_encryption_key: "${{ secrets.API_KEY }}"
           ota_password: "${{ secrets.OTA_PASSWORD }}"
+          mqtt_broker: "${{ secrets.MQTT_BROKER }}"
+          mqtt_username: "${{ secrets.MQTT_USERNAME }}"
+          mqtt_password: "${{ secrets.MQTT_PASSWORD }}"
           EOF
-          echo "✅ secrets.yaml 已生成"
+          echo "✅ secrets.yaml 已生成 (包含 WiFi, API, OTA, MQTT)"
 
       # 🛠️ 调用 ESPHome 官方 action 进行编译
       - name: 编译 ESPHome (${{ matrix.yaml-file }})
