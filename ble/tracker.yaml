@@ -9,7 +9,6 @@ esp32_ble_tracker:
         - lambda: |-
             if (x.size() < 20) return;
             if (x[0] != 0x21) return;
-            // 过滤 Dev3 的 MAC 地址特征
             if (x[2]!=0x48 || x[3]!=0x80 || x[4]!=0x27 || x[5]!=0x70 || x[6]!=0x00 || x[7]!=0x00) return;
             
             bool power_on = (x[9] == 0x01);
@@ -18,26 +17,17 @@ esp32_ble_tracker:
             uint16_t brt_raw = (x[14] << 8) | x[15];
             int brt_pct = (brt_raw == 0xFFFF) ? 100 : (int)(brt_raw / 655.35);
             
-            // 1. 更新 ESPHome 内部状态 (自动同步给 HA)
+            // 1. 更新 ESPHome 内部状态
             id(dev3_power).publish_state(power_on);
             id(dev3_fan_running).publish_state(fan_running);
             id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
             id(dev3_brightness).publish_state(brt_pct);
             
-            // 2. 同步状态给巴法云 (必须发到 主题/up)
-            id(mqtt_client).publish("light03/up", power_on ? "on" : "off");
+            // 2. 同步状态给巴法云 (必须使用正确的 002/003 后缀)
+            id(mqtt_client).publish("light3_002/up", power_on ? "on" : "off");
             
             if (fan_running) {
-              id(mqtt_client).publish("fan03/up", std::to_string(fan_gear_idx + 1).c_str());
+              id(mqtt_client).publish("fan3_003/up", std::to_string(fan_gear_idx + 1).c_str());
             } else {
-              id(mqtt_client).publish("fan03/up", "0");
+              id(mqtt_client).publish("fan3_003/up", "0");
             }
-            
-            // 3. 发布 JSON 状态到统一主题 (供 HA 或其他高级玩法使用)
-            id(mqtt_client).publish_json("ct1/state", [=](JsonObject root) {
-              root["device"] = "dev3";
-              root["power"] = power_on;
-              root["brightness"] = brt_pct;
-              root["fan"] = fan_running ? (fan_gear_idx + 1) : 0;
-              root["timestamp"] = millis();
-            });
