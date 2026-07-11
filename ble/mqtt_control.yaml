@@ -1,0 +1,55 @@
+mqtt:
+  on_json_message:
+    - topic: ct1/cmd
+      then:
+        - lambda: |-
+            // 1. 校验 JSON 格式
+            if (!x.containsKey("device") || !x.containsKey("type") || !x.containsKey("value")) {
+              ESP_LOGW("MQTT_CMD", "Invalid JSON format");
+              return;
+            }
+            
+            // 2. 提取字段
+            std::string dev = x["device"];
+            std::string cmd = x["type"];
+            int val = x["value"];
+            ESP_LOGI("MQTT_CMD", "Received -> Dev:%s Cmd:%s Val:%d", dev.c_str(), cmd.c_str(), val);
+            
+            // 3. 防抖保护
+            if (millis() - id(last_cmd_time) < 200) return;
+            id(last_cmd_time) = millis();
+            
+            // 4. 路由分发 (复用 select 组件的底层逻辑)
+            if (dev == "dev1") {
+                if (cmd == "brightness") {
+                    std::string v = std::to_string(val) + "%";
+                    id(dev1_brt).make_call().set_option(v).perform();
+                } else if (cmd == "color_temp") {
+                    std::string v = std::to_string(val) + "K";
+                    id(dev1_ct).make_call().set_option(v).perform();
+                } else if (cmd == "fan") {
+                    std::string v = "";
+                    if(val == 0) v = "关";
+                    else if(val == 1) v = "开";
+                    else v = std::to_string(val - 1) + " 档";
+                    id(dev1_fan_select).make_call().set_option(v).perform();
+                }
+            } 
+            else if (dev == "dev2") {
+                if (cmd == "brightness") {
+                    std::string v = std::to_string(val) + "%";
+                    id(dev2_brt).make_call().set_option(v).perform();
+                } else if (cmd == "color_temp") {
+                    std::string v = std::to_string(val) + "K";
+                    id(dev2_ct).make_call().set_option(v).perform();
+                } else if (cmd == "fan") {
+                    std::string v = "";
+                    if(val == 0) v = "关";
+                    else if(val == 1) v = "开";
+                    else v = std::to_string(val - 1) + " 档";
+                    id(dev2_fan_select).make_call().set_option(v).perform();
+                }
+            }
+            else {
+                ESP_LOGW("MQTT_CMD", "Unknown device: %s", dev.c_str());
+            }
