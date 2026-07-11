@@ -23,11 +23,11 @@ esp32_ble_tracker:
             id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
             id(dev3_brightness).publish_state(brt_pct);
             
-            // 2. 同步状态给巴法云 (必须使用正确的 002/003 后缀)
-            id(mqtt_client).publish("light3_002/up", power_on ? "on" : "off");
+            // 2. 同步状态给巴法云 (使用纯字母数字的 002/003 后缀)
+            id(mqtt_client).publish("light3002/up", power_on ? "on" : "off");
             
             if (fan_running) {
-              id(mqtt_client).publish("fan3_003/up", std::to_string(fan_gear_idx + 1).c_str());
+              id(mqtt_client).publish("fan3003/up", std::to_string(fan_gear_idx + 1).c_str());
             } else {
-              id(mqtt_client).publish("fan3_003/up", "0");
+              id(mqtt_client).publish("fan3003/up", "0");
             }
