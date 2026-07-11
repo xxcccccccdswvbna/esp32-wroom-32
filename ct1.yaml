@@ -11,6 +11,7 @@ esphome:
 packages:
   base_wifi: !include base/wifi.yaml
   base_web: !include base/web.yaml
+  base_mqtt: !include base/mqtt.yaml
   base_sensors: !include base/sensors.yaml
   base_text_sensors: !include base/text_sensors.yaml
   base_outputs: !include base/outputs.yaml
@@ -24,6 +25,7 @@ packages:
   ble_tracker: !include ble/tracker.yaml
   ble_dev3: !include ble/dev3.yaml
   ble_dev_controls: !include ble/dev_controls.yaml
+  ble_mqtt_control: !include ble/mqtt_control.yaml
 
 # 3. 其他顶级配置
 esp32:
