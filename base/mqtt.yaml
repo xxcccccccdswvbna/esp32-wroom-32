@@ -11,7 +11,7 @@ mqtt:
   birth_message:
   will_message:
 
-  # 开机主动上报，让 APP 立刻显示在线
+  # 开机主动上报
   on_connect:
     then:
       - mqtt.publish: { topic: "light1002/up", payload: "off" }
@@ -20,126 +20,144 @@ mqtt:
       - mqtt.publish: { topic: "fan2003/up", payload: "0" }
 
   on_message:
-    # ================= 监听 Dev1 灯 (light1002) =================
+    # ================= Dev1 灯 (light1002) =================
     - topic: light1002
       then:
         - if:
             condition:
               lambda: 'return x == "on" || x == "1" || x == "打开" || x == "开灯";'
             then:
-              - select.set: { id: dev1_brt, option: "100%" }
+              # 核心修复：使用 lambda 强制触发 select 的 set_action
+              - lambda: |-
+                  id(dev1_brt).make_call().set_option("100%").perform();
               - mqtt.publish: { topic: "light1002/up", payload: "on" }
         - if:
             condition:
               lambda: 'return x == "off" || x == "0" || x == "关闭" || x == "关灯";'
             then:
-              - select.set: { id: dev1_brt, option: "0%" }
+              # 核心修复：直接调用 Toggle 按钮发送真正的“关灯”报文
+              - button.press: dev1_light_toggle
               - mqtt.publish: { topic: "light1002/up", payload: "off" }
 
-    # ================= 监听 Dev1 风扇 (fan1003) =================
+    # ================= Dev1 风扇 (fan1003) =================
     - topic: fan1003
       then:
         - if:
             condition:
               lambda: 'return x == "off" || x == "0" || x == "关闭";'
             then:
-              - select.set: { id: dev1_fan_select, option: "关" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("关").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "0" }
         - if:
             condition:
               lambda: 'return x == "1" || x == "1档" || x == "一档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "1 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("1 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "1" }
         - if:
             condition:
               lambda: 'return x == "2" || x == "2档" || x == "二档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "2 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("2 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "2" }
         - if:
             condition:
               lambda: 'return x == "3" || x == "3档" || x == "三档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "3 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("3 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "3" }
         - if:
             condition:
               lambda: 'return x == "4" || x == "4档" || x == "四档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "4 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("4 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "4" }
         - if:
             condition:
               lambda: 'return x == "5" || x == "5档" || x == "五档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "5 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("5 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "5" }
         - if:
             condition:
               lambda: 'return x == "6" || x == "6档" || x == "六档";'
             then:
-              - select.set: { id: dev1_fan_select, option: "6 档" }
+              - lambda: |-
+                  id(dev1_fan_select).make_call().set_option("6 档").perform();
               - mqtt.publish: { topic: "fan1003/up", payload: "6" }
 
-    # ================= 监听 Dev2 灯 (light2002) =================
+    # ================= Dev2 灯 (light2002) =================
     - topic: light2002
       then:
         - if:
             condition:
               lambda: 'return x == "on" || x == "1" || x == "打开" || x == "开灯";'
             then:
-              - select.set: { id: dev2_brt, option: "100%" }
+              - lambda: |-
+                  id(dev2_brt).make_call().set_option("100%").perform();
               - mqtt.publish: { topic: "light2002/up", payload: "on" }
         - if:
             condition:
               lambda: 'return x == "off" || x == "0" || x == "关闭" || x == "关灯";'
             then:
-              - select.set: { id: dev2_brt, option: "0%" }
+              - button.press: dev2_light_toggle
               - mqtt.publish: { topic: "light2002/up", payload: "off" }
 
-    # ================= 监听 Dev2 风扇 (fan2003) =================
+    # ================= Dev2 风扇 (fan2003) =================
     - topic: fan2003
       then:
         - if:
             condition:
               lambda: 'return x == "off" || x == "0" || x == "关闭";'
             then:
-              - select.set: { id: dev2_fan_select, option: "关" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("关").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "0" }
         - if:
             condition:
               lambda: 'return x == "1" || x == "1档" || x == "一档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "1 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("1 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "1" }
         - if:
             condition:
               lambda: 'return x == "2" || x == "2档" || x == "二档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "2 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("2 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "2" }
         - if:
             condition:
               lambda: 'return x == "3" || x == "3档" || x == "三档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "3 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("3 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "3" }
         - if:
             condition:
               lambda: 'return x == "4" || x == "4档" || x == "四档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "4 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("4 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "4" }
         - if:
             condition:
               lambda: 'return x == "5" || x == "5档" || x == "五档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "5 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("5 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "5" }
         - if:
             condition:
               lambda: 'return x == "6" || x == "6档" || x == "六档";'
             then:
-              - select.set: { id: dev2_fan_select, option: "6 档" }
+              - lambda: |-
+                  id(dev2_fan_select).make_call().set_option("6 档").perform();
               - mqtt.publish: { topic: "fan2003/up", payload: "6" }
