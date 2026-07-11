@@ -25,6 +25,23 @@ esp32_ble_tracker:
             id(dev3_fan_running).publish_state(fan_running);
             id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
             id(dev3_brightness).publish_state(brt_pct);
+                        id(dev3_power).publish_state(power_on);
+            id(dev3_fan_running).publish_state(fan_running);
+            id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
+            id(dev3_brightness).publish_state(brt_pct);
+            
+            // ================= 新增：同步状态给巴法云 =================
+            // 注意：发布状态必须发到 "主题名/up"
+            id(mqtt_client).publish("light03/up", power_on ? "on" : "off");
+            
+            if (fan_running) {
+              // 风扇运行中，发布档位 (1, 2, 3...)
+              id(mqtt_client).publish("fan03/up", std::to_string(fan_gear_idx + 1).c_str());
+            } else {
+              // 风扇关闭，发布 0
+              id(mqtt_client).publish("fan03/up", "0");
+            }
+            // ==========================================================
             
             // ================= 新增：发布 MQTT 状态 =================
             id(mqtt_client).publish_json("ct1/state", [=](JsonObject root) {
