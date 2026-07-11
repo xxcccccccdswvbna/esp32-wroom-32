@@ -21,3 +21,17 @@ esp32_ble_tracker:
             id(dev3_fan_running).publish_state(fan_running);
             id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
             id(dev3_brightness).publish_state(brt_pct);
+                        id(dev3_power).publish_state(power_on);
+            id(dev3_fan_running).publish_state(fan_running);
+            id(dev3_fan_speed).publish_state(fan_running ? (fan_gear_idx + 1) : 0);
+            id(dev3_brightness).publish_state(brt_pct);
+            
+            // ================= 新增：发布 MQTT 状态 =================
+            id(mqtt_client).publish_json("ct1/state", [=](JsonObject root) {
+              root["device"] = "dev3";
+              root["power"] = power_on;
+              root["brightness"] = brt_pct;
+              root["fan"] = fan_running ? (fan_gear_idx + 1) : 0;
+              root["timestamp"] = millis();
+            });
+            // ======================================================
