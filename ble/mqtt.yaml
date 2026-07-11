@@ -1,0 +1,19 @@
+mqtt:
+  id: mqtt_client
+  broker: !secret mqtt_broker
+  port: 1883
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  
+  # 断线重连与心跳
+  reboot_timeout: 300s
+  keepalive: 60s
+  
+  #  birth message (上线通知)
+  birth_message:
+    topic: ct1/status
+    payload: "online"
+  #  will message (掉线通知)
+  will_message:
+    topic: ct1/status
+    payload: "offline"
