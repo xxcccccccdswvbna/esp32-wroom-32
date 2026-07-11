@@ -2,8 +2,15 @@ script:
   - id: ble_send
     mode: restart
     then:
+      # ================= 动作1：发送 pkt_1 (唤醒包) =================
       - lambda: 'id(ble_server).set_manufacturer_data(id(pkt_1));'
       - delay: 150ms
+      - lambda: 'id(ble_server).set_manufacturer_data({});'  # 清空广播
+      
+      # ================= 间隔：让射频模块休息 =================
+      - delay: 100ms
+      
+      # ================= 动作2：发送 pkt_2 (指令包) =================
       - lambda: 'id(ble_server).set_manufacturer_data(id(pkt_2));'
-      - delay: 50ms
-      - lambda: 'id(ble_server).set_manufacturer_data({});'
+      - delay: 150ms
+      - lambda: 'id(ble_server).set_manufacturer_data({});'  # 清空广播
