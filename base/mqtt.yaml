@@ -1,17 +1,75 @@
 mqtt:
   id: mqtt_client
   broker: !secret mqtt_broker
-  port: 9501  # 核心修改：巴法云专用端口
-  
+  port: 9501
   username: !secret mqtt_username
-  password: !secret mqtt_password
-  client_id: !secret mqtt_username  # 核心修改：巴法云要求 client_id 也是私钥
-  
-  discovery: false  # 核心修改：关闭 HA 自动发现，防止被巴法云踢下线
-  
+  password: !secret mqtt_username  # 巴法云的密码也是私钥
+  client_id: !secret mqtt_username
+  discovery: false
   keepalive: 30s
   reboot_timeout: 300s
-  
-  # 核心修改：清空 birth 和 will 消息，巴法云不支持这些自定义格式
   birth_message:
   will_message:
+  
+  on_message:
+    # ================= 监听 Dev1 =================
+    # 监听 Dev1 灯 (主题: light01)
+    - topic: light01
+      then:
+        - lambda: |-
+            if (x == "on" || x == "1") {
+              id(dev1_brt).make_call().set_option("100%").perform();
+            } else if (x == "off" || x == "0") {
+              id(dev1_brt).make_call().set_option("0%").perform();
+            }
+
+    # 监听 Dev1 风扇 (主题: fan01)
+    - topic: fan01
+      then:
+        - lambda: |-
+            if (x == "off" || x == "0") {
+              id(dev1_fan_select).make_call().set_option("关").perform();
+            } else if (x == "1") {
+              id(dev1_fan_select).make_call().set_option("1 档").perform();
+            } else if (x == "2") {
+              id(dev1_fan_select).make_call().set_option("2 档").perform();
+            } else if (x == "3") {
+              id(dev1_fan_select).make_call().set_option("3 档").perform();
+            } else if (x == "4") {
+              id(dev1_fan_select).make_call().set_option("4 档").perform();
+            } else if (x == "5") {
+              id(dev1_fan_select).make_call().set_option("5 档").perform();
+            } else if (x == "6") {
+              id(dev1_fan_select).make_call().set_option("6 档").perform();
+            }
+
+    # ================= 监听 Dev2 =================
+    # 监听 Dev2 灯 (主题: light02)
+    - topic: light02
+      then:
+        - lambda: |-
+            if (x == "on" || x == "1") {
+              id(dev2_brt).make_call().set_option("100%").perform();
+            } else if (x == "off" || x == "0") {
+              id(dev2_brt).make_call().set_option("0%").perform();
+            }
+
+    # 监听 Dev2 风扇 (主题: fan02)
+    - topic: fan02
+      then:
+        - lambda: |-
+            if (x == "off" || x == "0") {
+              id(dev2_fan_select).make_call().set_option("关").perform();
+            } else if (x == "1") {
+              id(dev2_fan_select).make_call().set_option("1 档").perform();
+            } else if (x == "2") {
+              id(dev2_fan_select).make_call().set_option("2 档").perform();
+            } else if (x == "3") {
+              id(dev2_fan_select).make_call().set_option("3 档").perform();
+            } else if (x == "4") {
+              id(dev2_fan_select).make_call().set_option("4 档").perform();
+            } else if (x == "5") {
+              id(dev2_fan_select).make_call().set_option("5 档").perform();
+            } else if (x == "6") {
+              id(dev2_fan_select).make_call().set_option("6 档").perform();
+            }
