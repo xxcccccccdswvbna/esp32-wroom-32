@@ -3,73 +3,101 @@ mqtt:
   broker: !secret mqtt_broker
   port: 9501
   username: !secret mqtt_username
-  password: !secret mqtt_username  # 巴法云的密码也是私钥
+  password: !secret mqtt_username
   client_id: !secret mqtt_username
   discovery: false
   keepalive: 30s
   reboot_timeout: 300s
   birth_message:
   will_message:
-  
+
+  # ================= 核心修复 1：开机主动上报 =================
+  # 连上巴法云后，立刻发一次初始状态，让 APP 马上显示设备在线
+  on_connect:
+    then:
+      - lambda: |-
+          id(mqtt_client).publish("light01/up", "off");
+          id(mqtt_client).publish("fan01/up", "0");
+          id(mqtt_client).publish("light02/up", "off");
+          id(mqtt_client).publish("fan02/up", "0");
+          ESP_LOGI("MQTT", "Connected and initial status published to Bemfa!");
+
   on_message:
-    # ================= 监听 Dev1 =================
-    # 监听 Dev1 灯 (主题: light01)
+    # ================= 监听 Dev1 灯 (light01) =================
     - topic: light01
       then:
         - lambda: |-
-            if (x == "on" || x == "1") {
+            // 核心修复 2：兼容小爱同学的中文指令（开灯、关灯、打开、关闭）
+            if (x == "on" || x == "1" || x == "打开" || x == "开灯") {
               id(dev1_brt).make_call().set_option("100%").perform();
-            } else if (x == "off" || x == "0") {
+              id(mqtt_client).publish("light01/up", "on"); // 执行后立刻上报状态给 APP
+            } else if (x == "off" || x == "0" || x == "关闭" || x == "关灯") {
               id(dev1_brt).make_call().set_option("0%").perform();
+              id(mqtt_client).publish("light01/up", "off"); // 执行后立刻上报状态给 APP
             }
 
-    # 监听 Dev1 风扇 (主题: fan01)
+    # ================= 监听 Dev1 风扇 (fan01) =================
     - topic: fan01
       then:
         - lambda: |-
-            if (x == "off" || x == "0") {
+            if (x == "off" || x == "0" || x == "关闭") {
               id(dev1_fan_select).make_call().set_option("关").perform();
-            } else if (x == "1") {
+              id(mqtt_client).publish("fan01/up", "0");
+            } else if (x == "1" || x == "1档" || x == "一档") {
               id(dev1_fan_select).make_call().set_option("1 档").perform();
-            } else if (x == "2") {
+              id(mqtt_client).publish("fan01/up", "1");
+            } else if (x == "2" || x == "2档" || x == "二档") {
               id(dev1_fan_select).make_call().set_option("2 档").perform();
-            } else if (x == "3") {
+              id(mqtt_client).publish("fan01/up", "2");
+            } else if (x == "3" || x == "3档" || x == "三档") {
               id(dev1_fan_select).make_call().set_option("3 档").perform();
-            } else if (x == "4") {
+              id(mqtt_client).publish("fan01/up", "3");
+            } else if (x == "4" || x == "4档" || x == "四档") {
               id(dev1_fan_select).make_call().set_option("4 档").perform();
-            } else if (x == "5") {
+              id(mqtt_client).publish("fan01/up", "4");
+            } else if (x == "5" || x == "5档" || x == "五档") {
               id(dev1_fan_select).make_call().set_option("5 档").perform();
-            } else if (x == "6") {
+              id(mqtt_client).publish("fan01/up", "5");
+            } else if (x == "6" || x == "6档" || x == "六档") {
               id(dev1_fan_select).make_call().set_option("6 档").perform();
+              id(mqtt_client).publish("fan01/up", "6");
             }
 
-    # ================= 监听 Dev2 =================
-    # 监听 Dev2 灯 (主题: light02)
+    # ================= 监听 Dev2 灯 (light02) =================
     - topic: light02
       then:
         - lambda: |-
-            if (x == "on" || x == "1") {
+            if (x == "on" || x == "1" || x == "打开" || x == "开灯") {
               id(dev2_brt).make_call().set_option("100%").perform();
-            } else if (x == "off" || x == "0") {
+              id(mqtt_client).publish("light02/up", "on");
+            } else if (x == "off" || x == "0" || x == "关闭" || x == "关灯") {
               id(dev2_brt).make_call().set_option("0%").perform();
+              id(mqtt_client).publish("light02/up", "off");
             }
 
-    # 监听 Dev2 风扇 (主题: fan02)
+    # ================= 监听 Dev2 风扇 (fan02) =================
     - topic: fan02
       then:
         - lambda: |-
-            if (x == "off" || x == "0") {
+            if (x == "off" || x == "0" || x == "关闭") {
               id(dev2_fan_select).make_call().set_option("关").perform();
-            } else if (x == "1") {
+              id(mqtt_client).publish("fan02/up", "0");
+            } else if (x == "1" || x == "1档" || x == "一档") {
               id(dev2_fan_select).make_call().set_option("1 档").perform();
-            } else if (x == "2") {
+              id(mqtt_client).publish("fan02/up", "1");
+            } else if (x == "2" || x == "2档" || x == "二档") {
               id(dev2_fan_select).make_call().set_option("2 档").perform();
-            } else if (x == "3") {
+              id(mqtt_client).publish("fan02/up", "2");
+            } else if (x == "3" || x == "3档" || x == "三档") {
               id(dev2_fan_select).make_call().set_option("3 档").perform();
-            } else if (x == "4") {
+              id(mqtt_client).publish("fan02/up", "3");
+            } else if (x == "4" || x == "4档" || x == "四档") {
               id(dev2_fan_select).make_call().set_option("4 档").perform();
-            } else if (x == "5") {
+              id(mqtt_client).publish("fan02/up", "4");
+            } else if (x == "5" || x == "5档" || x == "五档") {
               id(dev2_fan_select).make_call().set_option("5 档").perform();
-            } else if (x == "6") {
+              id(mqtt_client).publish("fan02/up", "5");
+            } else if (x == "6" || x == "6档" || x == "六档") {
               id(dev2_fan_select).make_call().set_option("6 档").perform();
+              id(mqtt_client).publish("fan02/up", "6");
             }
