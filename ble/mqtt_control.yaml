@@ -1,50 +1,55 @@
 mqtt:
-  on_message:
-    # ================= 监听 Dev1 =================
-    # 监听 Dev1 灯 (主题: light01)
-    - topic: light01
+  on_json_message:
+    - topic: ct1/cmd
       then:
         - lambda: |-
-            if (x == "on" || x == "1") {
-              id(dev1_power).publish_state(true);
-              id(dev1_brt).make_call().set_option("100%").perform(); // 开灯默认100%
-            } else if (x == "off" || x == "0") {
-              id(dev1_power).publish_state(false);
-              id(dev1_brt).make_call().set_option("0%").perform();
+            // 1. 校验 JSON 格式
+            if (!x.containsKey("device") || !x.containsKey("type") || !x.containsKey("value")) {
+              ESP_LOGW("MQTT_CMD", "Invalid JSON format");
+              return;
             }
-
-    # 监听 Dev1 风扇 (主题: fan01)
-    - topic: fan01
-      then:
-        - lambda: |-
-            if (x == "off" || x == "0") {
-              id(dev1_fan_select).make_call().set_option("关").perform();
-            } else {
-              // 巴法云风扇发的是 1, 2, 3，我们需要转换成 "1 档", "2 档"
-              std::string gear = x + " 档";
-              id(dev1_fan_select).make_call().set_option(gear).perform();
+            
+            // 2. 提取字段
+            std::string dev = x["device"];
+            std::string cmd = x["type"];
+            int val = x["value"];
+            ESP_LOGI("MQTT_CMD", "Received -> Dev:%s Cmd:%s Val:%d", dev.c_str(), cmd.c_str(), val);
+            
+            // 3. 防抖保护
+            if (millis() - id(last_cmd_time) < 200) return;
+            id(last_cmd_time) = millis();
+            
+            // 4. 路由分发 (复用 select 组件的底层逻辑)
+            if (dev == "dev1") {
+                if (cmd == "brightness") {
+                    std::string v = std::to_string(val) + "%";
+                    id(dev1_brt).make_call().set_option(v).perform();
+                } else if (cmd == "color_temp") {
+                    std::string v = std::to_string(val) + "K";
+                    id(dev1_ct).make_call().set_option(v).perform();
+                } else if (cmd == "fan") {
+                    std::string v = "";
+                    if(val == 0) v = "关";
+                    else if(val == 1) v = "开";
+                    else v = std::to_string(val - 1) + " 档";
+                    id(dev1_fan_select).make_call().set_option(v).perform();
+                }
+            } 
+            else if (dev == "dev2") {
+                if (cmd == "brightness") {
+                    std::string v = std::to_string(val) + "%";
+                    id(dev2_brt).make_call().set_option(v).perform();
+                } else if (cmd == "color_temp") {
+                    std::string v = std::to_string(val) + "K";
+                    id(dev2_ct).make_call().set_option(v).perform();
+                } else if (cmd == "fan") {
+                    std::string v = "";
+                    if(val == 0) v = "关";
+                    else if(val == 1) v = "开";
+                    else v = std::to_string(val - 1) + " 档";
+                    id(dev2_fan_select).make_call().set_option(v).perform();
+                }
             }
-
-    # ================= 监听 Dev2 =================
-    # 监听 Dev2 灯 (主题: light02)
-    - topic: light02
-      then:
-        - lambda: |-
-            if (x == "on" || x == "1") {
-              id(dev2_power).publish_state(true);
-              id(dev2_brt).make_call().set_option("100%").perform();
-            } else if (x == "off" || x == "0") {
-              id(dev2_power).publish_state(false);
-              id(dev2_brt).make_call().set_option("0%").perform();
-            }
-
-    # 监听 Dev2 风扇 (主题: fan02)
-    - topic: fan02
-      then:
-        - lambda: |-
-            if (x == "off" || x == "0") {
-              id(dev2_fan_select).make_call().set_option("关").perform();
-            } else {
-              std::string gear = x + " 档";
-              id(dev2_fan_select).make_call().set_option(gear).perform();
+            else {
+                ESP_LOGW("MQTT_CMD", "Unknown device: %s", dev.c_str());
             }
