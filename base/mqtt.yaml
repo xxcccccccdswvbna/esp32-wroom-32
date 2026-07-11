@@ -1,18 +1,17 @@
 mqtt:
   id: mqtt_client
   broker: !secret mqtt_broker
-  port: 1883
+  port: 9501  # 核心修改：巴法云专用端口
+  
   username: !secret mqtt_username
   password: !secret mqtt_password
+  client_id: !secret mqtt_username  # 核心修改：巴法云要求 client_id 也是私钥
   
-  # 断线重连与心跳
+  discovery: false  # 核心修改：关闭 HA 自动发现，防止被巴法云踢下线
+  
+  keepalive: 30s
   reboot_timeout: 300s
-  keepalive: 60s
   
-  # 上线/掉线通知 (可选，方便在 HA 或 MQTT 客户端看状态)
+  # 核心修改：清空 birth 和 will 消息，巴法云不支持这些自定义格式
   birth_message:
-    topic: "ct1/status"
-    payload: "online"
   will_message:
-    topic: "ct1/status"
-    payload: "offline"
