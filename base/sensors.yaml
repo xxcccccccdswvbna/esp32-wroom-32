@@ -1,6 +1,6 @@
 sensor:
   - platform: uptime
-    name: "Uptime"
+    name: Uptime
   - platform: internal_temperature
     name: "ESP32 Chip Temperature"
     unit_of_measurement: "°C"
